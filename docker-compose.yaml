@@ -1,0 +1,60 @@
+services:
+  user-management:
+    image: user-management
+    build: .
+    ports:
+      - "5000:8080"
+    environment:
+      - FLUENTD_HOST=fluentd
+      - FLUENTD_PORT=24224
+    networks:
+      - svc-network
+    depends_on:
+      - fluentd
+#    expose:
+#      - "5000"
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+    networks:
+      - es-network
+    expose:
+      - "9200"
+  fluentd:
+    build: ./fluentd
+    volumes:
+      - ./fluentd/conf:/fluentd/etc
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - svc-network
+      - es-network
+    depends_on:
+      - elasticsearch
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.2.0
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    networks:
+      - es-network
+    depends_on:
+      - elasticsearch
+
+networks:
+  svc-network:
+    driver: bridge
+  es-network:
+    driver: bridge
+
+volumes:
+  esdata:
+    driver: local
