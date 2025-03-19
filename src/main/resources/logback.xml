@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-<!--    <logger name="jsonLogger" level="INFO">-->
-<!--        <appender-ref ref="CONSOLE"/>-->
-<!--    </logger>-->
+    <!--    <logger name="jsonLogger" level="INFO">-->
+    <!--        <appender-ref ref="CONSOLE"/>-->
+    <!--    </logger>-->
 
     <include resource="org/springframework/boot/logging/logback/base.xml"/>
     <!-- If there is no ENV var FLUENTD_HOST then use localhost -->
@@ -24,8 +24,7 @@
     </appender>
 
     <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FLUENT" />
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FLUENT"/>
     </root>
-
 </configuration>

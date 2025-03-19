@@ -1,6 +1,7 @@
 services:
   user-management:
     image: user-management
+    container_name: user-management
     build: .
     ports:
       - "5000:8080"
@@ -9,24 +10,31 @@ services:
       - FLUENTD_PORT=24224
     networks:
       - svc-network
-    depends_on:
-      - fluentd
-#    expose:
-#      - "5000"
+      - es-network
+#    depends_on:
+#      fluentd:
+#        condition: service_healthy
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
     container_name: elasticsearch
     environment:
       - discovery.type=single-node
+      - ES_LOG_STYLE=console
     volumes:
-      - esdata:/usr/share/elasticsearch/data
+      - es-volume:/usr/share/elasticsearch/data
     ports:
       - "9200:9200"
     networks:
       - es-network
-    expose:
-      - "9200"
+      - svc-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9200" ]
+      interval: 10s
+      retries: 10
+      start_period: 30s
   fluentd:
+    image: fluentd
+    container_name: fluentd
     build: ./fluentd
     volumes:
       - ./fluentd/conf:/fluentd/etc
@@ -34,27 +42,31 @@ services:
       - "24224:24224"
       - "24224:24224/udp"
     networks:
-      - svc-network
       - es-network
-    depends_on:
-      - elasticsearch
+#    depends_on:
+#      elasticsearch:
+#        condition: service_healthy
+#    healthcheck:
+#      test: [ "CMD", "nc", "-z", "localhost", "24224" ]
+#      interval: 10s
+#      retries: 5
+#      start_period: 20s
   kibana:
     image: docker.elastic.co/kibana/kibana:7.2.0
+    container_name: kibana
     environment:
       ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     ports:
       - "5601:5601"
     networks:
       - es-network
-    depends_on:
-      - elasticsearch
-
+#    depends_on:
+#      - elasticsearch
 networks:
   svc-network:
     driver: bridge
   es-network:
     driver: bridge
-
 volumes:
-  esdata:
+  es-volume:
     driver: local
