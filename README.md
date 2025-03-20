@@ -11,7 +11,7 @@ gradle clean build
 ```
 Then create user-management local image
 ```
-docker build -t user-management 
+docker build -t user-management .
 ```
 Then start all containers
 ```
